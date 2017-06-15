@@ -11,9 +11,9 @@ namespace HidePlugins
     {
         #region Vars
         public string pluginName = "HidePlugins";
-        public string pluginVersion = "1.0";
+        public string pluginVersion = "1.0.1";
         public string pluginSite = "Plugins.4Unturned.tk";
-        public string unturnedVersion = "3.18.14.0 +";
+        public string unturnedVersion = "3.18.15.0 +";
         public string rocketVersion = "4.9.3.0";
         
         public static HidePlugins Instance;
@@ -75,6 +75,53 @@ namespace HidePlugins
                 WriteLogError("Failed to Establish a Connection with Plugins.4Unturned.tk!\nMore Info: goo.gl/yAIaWz\n");
             }
             #endregion
+
+            #region Config
+            if (Configuration.Instance.HidePlugins)
+            {
+                Write("Hide Plugins: Enabled", ConsoleColor.Green);
+            }
+            else
+            {
+                Write("Hide Plugins: Disabled", ConsoleColor.Red);
+            }
+
+            if (Configuration.Instance.Enable_CustomEntry && !string.IsNullOrEmpty(Configuration.Instance.CustomEntry))
+            {
+                Write("Custom Entry: " + Configuration.Instance.CustomEntry, ConsoleColor.Green);
+            }
+            else
+            {
+                Write("Custom Entry: Disabled", ConsoleColor.Red);
+            }
+
+            if (Configuration.Instance.HideWorkshop)
+            {
+                Write("Hide Workshop: Enabled", ConsoleColor.Green);
+            }
+            else
+            {
+                Write("Hide Workshop: Disabled", ConsoleColor.Red);
+            }
+
+            if (Configuration.Instance.HideConfig)
+            {
+                Write("Hide Config: Enabled", ConsoleColor.Green);
+            }
+            else
+            {
+                Write("Hide Config: Disabled", ConsoleColor.Red);
+            }
+
+            if (Configuration.Instance.Enable_MaxPlayerCount && !string.IsNullOrEmpty(Configuration.Instance.MaxPlayerCount.ToString()))
+            {
+                Write("MaxPlayerCount: " + Configuration.Instance.MaxPlayerCount, ConsoleColor.Green);
+            }
+            else
+            {
+                Write("MaxPlayerCount: Disabled", ConsoleColor.Red);
+            }
+            #endregion
         }
         #endregion
 
@@ -82,64 +129,47 @@ namespace HidePlugins
         public void OnPluginsLoaded()
         {
             #region Hide Plugins / Custom Entries
-            if (Instance.Configuration.Instance.HidePlugins)
+            if (Configuration.Instance.HidePlugins)
             {
                 SteamGameServer.SetKeyValue("rocketplugins", "");
                 
-                Write("Hide Plugins: Enabled", ConsoleColor.Green);
-
-                if (Instance.Configuration.Instance.Enable_CustomEntry)
+                if (Configuration.Instance.Enable_CustomEntry)
                 {
-                    SteamGameServer.SetKeyValue("rocketplugins", Instance.Configuration.Instance.CustomEntry);
-                    Write("Custom Entry: " + Instance.Configuration.Instance.CustomEntry, ConsoleColor.Green);
+                    SteamGameServer.SetKeyValue("rocketplugins", Configuration.Instance.CustomEntry);
                 }
-                else
-                {
-                    Write("Custom Entry: Disabled", ConsoleColor.Red);
-                }
-            }
-            else
-            {
-                Write("Hide Plugins: Disabled", ConsoleColor.Red);
             }
             #endregion
 
             #region Hide Workshop
-            if (Instance.Configuration.Instance.HideWorkshop)
+            if (Configuration.Instance.HideWorkshop)
             {
                 SteamGameServer.SetKeyValue("Browser_Workshop_Count", "");
-                Write("Hide Workshop: Enabled", ConsoleColor.Green);
             }
             else
             {
                 SteamGameServer.SetKeyValue("Browser_Workshop_Count", "99");
-                Write("Hide Workshop: Disabled", ConsoleColor.Red);
             }
             #endregion
 
             #region Hide Config
-            if (Instance.Configuration.Instance.HideConfig)
+            if (Configuration.Instance.HideConfig)
             {
                 SteamGameServer.SetKeyValue("Browser_Config_Count", "");
-                Write("Hide Config: Enabled", ConsoleColor.Green);
             }
             else
             {
                 SteamGameServer.SetKeyValue("Browser_Config_Count", "99");
-                Write("Hide Config: Disabled", ConsoleColor.Red);
             }
             #endregion
 
             #region MaxPlayerCount
-            if (Instance.Configuration.Instance.Enable_MaxPlayerCount)
+            if (Configuration.Instance.Enable_MaxPlayerCount)
             {
-                SteamGameServer.SetMaxPlayerCount(Instance.Configuration.Instance.MaxPlayerCount);
-                Write("MaxPlayerCount: " + Instance.Configuration.Instance.MaxPlayerCount, ConsoleColor.Green);
+                SteamGameServer.SetMaxPlayerCount(Configuration.Instance.MaxPlayerCount);
             }
             else
             {
                 SteamGameServer.SetMaxPlayerCount(Provider.maxPlayers);
-                Write("MaxPlayerCount: Disabled", ConsoleColor.Red);
             }
             #endregion
         }
