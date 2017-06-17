@@ -11,7 +11,7 @@ namespace HidePlugins
     {
         #region Vars
         public string pluginName = "HidePlugins";
-        public string pluginVersion = "1.0.1";
+        public string pluginVersion = "1.0.2";
         public string pluginSite = "Plugins.4Unturned.tk";
         public string unturnedVersion = "3.18.15.0 +";
         public string rocketVersion = "4.9.3.0";
@@ -113,13 +113,13 @@ namespace HidePlugins
                 Write("Hide Config: Disabled", ConsoleColor.Red);
             }
 
-            if (Configuration.Instance.Enable_MaxPlayerCount && !string.IsNullOrEmpty(Configuration.Instance.MaxPlayerCount.ToString()))
+            if (Configuration.Instance.Enable_LargeServer)
             {
-                Write("MaxPlayerCount: " + Configuration.Instance.MaxPlayerCount, ConsoleColor.Green);
+                Write("Large Server: Enabled", ConsoleColor.Green);
             }
             else
             {
-                Write("MaxPlayerCount: Disabled", ConsoleColor.Red);
+                Write("Large Server: Disabled", ConsoleColor.Red);
             }
             #endregion
         }
@@ -163,9 +163,9 @@ namespace HidePlugins
             #endregion
 
             #region MaxPlayerCount
-            if (Configuration.Instance.Enable_MaxPlayerCount)
+            if (Configuration.Instance.Enable_LargeServer)
             {
-                SteamGameServer.SetMaxPlayerCount(Configuration.Instance.MaxPlayerCount);
+                SteamGameServer.SetMaxPlayerCount(24);
             }
             else
             {

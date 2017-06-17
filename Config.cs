@@ -10,8 +10,7 @@ public class Config : IRocketPluginConfiguration
     public bool HideConfig;
     public bool Enable_CustomEntry;
     public string CustomEntry;
-    public bool Enable_MaxPlayerCount;
-    public int MaxPlayerCount;
+    public bool Enable_LargeServer;
     #endregion
 
     #region Defaults
@@ -22,8 +21,7 @@ public class Config : IRocketPluginConfiguration
         HideConfig = false;
         Enable_CustomEntry = false;
         CustomEntry = @"乁(ツ)ㄏ,乁(ಥ.ಥ)ㄏ,乁(ಠ-ಠ)ㄏ";
-        Enable_MaxPlayerCount = false;
-        MaxPlayerCount = 64;
+        Enable_LargeServer = false;
     }
     #endregion
 }
