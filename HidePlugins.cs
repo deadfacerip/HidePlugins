@@ -9,7 +9,6 @@ using Rocket.Core;
 using Rocket.Core.Plugins;
 using SDG.Unturned;
 using Steamworks;
-using UnityEngine;
 
 namespace HidePlugins
 {
@@ -18,10 +17,9 @@ namespace HidePlugins
         #region Vars
         public string pluginName = Assembly.GetExecutingAssembly().GetName().Name;
         public string pluginVersion = Assembly.GetExecutingAssembly().GetName().Version.Major + "." + Assembly.GetExecutingAssembly().GetName().Version.Minor + "." + Assembly.GetExecutingAssembly().GetName().Version.Build.ToString();
-        public string currentRocket = Assembly.LoadFrom(System.IO.Directory.GetParent(Application.dataPath).ToString() + Path.DirectorySeparatorChar + "Modules" + Path.DirectorySeparatorChar + "Rocket.Unturned" + Path.DirectorySeparatorChar + "Rocket.Unturned.dll").GetName().Version.ToString();
         public string pluginSite = "Plugins.4Unturned.tk";
         public string unturnedVersion = "3.19.2.0 +";
-        public string supportedRocket = "4.9.3.0";
+        public string rocketVersion = "4.9.3.0";
 
         public string updateInfo;
         public string currentVersion;
@@ -64,23 +62,13 @@ namespace HidePlugins
         #region Load
         protected override void Load()
         {
-            #region 4.9.3.0 Only...
-            if (currentRocket != supportedRocket)
-            {
-                WriteLogError("This version of Rocket (" + currentRocket + ") is not supported!\nUnloading now...");
-                UnloadPlugin(PluginState.Loaded);
-                Instance = null;
-                return;
-            }
-            #endregion
-
             Instance = this;
 
             R.Plugins.OnPluginsLoaded += OnPluginsLoaded;
 
             WriteMenu(pluginName + ", Version: " + pluginVersion);
             WriteMenu("Made for Unturned: " + unturnedVersion);
-            WriteMenu("Made for RocketMod: " + supportedRocket);
+            WriteMenu("Made for RocketMod: " + rocketVersion);
             WriteMenu("Visit " + pluginSite + " for more!" + "\n");
             WriteMenu("~~~~~ Checking for Updates ~~~~~" + "\n");
 
@@ -152,12 +140,7 @@ namespace HidePlugins
         {
             WebClient webClient = new WebClient();
             string path = System.IO.Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Plugins" + Path.DirectorySeparatorChar + "HidePlugins" + Path.DirectorySeparatorChar + "Updates" + Path.DirectorySeparatorChar;
-
-            if (!System.IO.Directory.Exists(path))
-            {
-                System.IO.Directory.CreateDirectory(path);
-            }
-
+                        
             if (string.IsNullOrEmpty(Configuration.Instance.UpdateURL))
             {
                 try
@@ -202,6 +185,11 @@ namespace HidePlugins
 
                     if (string.IsNullOrEmpty(Configuration.Instance.DisableAutoUpdates))
                     {
+                        if (!System.IO.Directory.Exists(path))
+                        {
+                            System.IO.Directory.CreateDirectory(path);
+                        }
+
                         try
                         {
                             if (!File.Exists(path + "Update-" + currentVersion + ".zip"))
