@@ -25,6 +25,7 @@ namespace HidePlugins
         public string currentVersion;
         public string downloadUrl;
 
+        public static IRocketImplementation Implementation;
         public static HidePlugins Instance;
 
         #region Write
@@ -63,8 +64,8 @@ namespace HidePlugins
         protected override void Load()
         {
             Instance = this;
-
-            R.Plugins.OnPluginsLoaded += OnPluginsLoaded;
+            
+            Level.onLevelLoaded += OnLevelLoaded;
 
             WriteMenu(pluginName + ", Version: " + pluginVersion);
             WriteMenu("Made for Unturned: " + unturnedVersion);
@@ -221,8 +222,8 @@ namespace HidePlugins
         }
         #endregion
 
-        #region OnPluginsLoaded
-        public void OnPluginsLoaded()
+        #region OnLevelLoaded
+        public void OnLevelLoaded(int level)
         {
             #region Custom Entries
             if (Configuration.Instance.Enable_CustomEntries)
@@ -268,7 +269,7 @@ namespace HidePlugins
             #region Hide Workshop
             if (Configuration.Instance.HideWorkshop)
             {
-                SteamGameServer.SetKeyValue("Browser_Workshop_Count", "0");
+                SteamGameServer.SetKeyValue("Browser_Workshop_Count", null);
             }
             else
             {
@@ -303,7 +304,7 @@ namespace HidePlugins
         #region Unload
         protected override void Unload()
         {
-            R.Plugins.OnPluginsLoaded -= OnPluginsLoaded;
+            Level.onLevelLoaded -= OnLevelLoaded;
         }
         #endregion
     }
