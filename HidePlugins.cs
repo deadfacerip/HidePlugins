@@ -9,6 +9,7 @@ using Rocket.Core;
 using Rocket.Core.Plugins;
 using SDG.Unturned;
 using Steamworks;
+using Logger = Rocket.Core.Logging.Logger;
 
 namespace HidePlugins
 {
@@ -18,22 +19,15 @@ namespace HidePlugins
         public string pluginName = Assembly.GetExecutingAssembly().GetName().Name;
         public string pluginVersion = Assembly.GetExecutingAssembly().GetName().Version.Major + "." + Assembly.GetExecutingAssembly().GetName().Version.Minor + "." + Assembly.GetExecutingAssembly().GetName().Version.Build.ToString();
         public string pluginSite = "Plugins.4Unturned.tk";
-        public string unturnedVersion = "3.19.2.0 +";
+        public string unturnedVersion = "3.20.3.0 +";
         public string rocketVersion = "4.9.3.0";
-
-        public string updateInfo;
-        public string currentVersion;
-        public string downloadUrl;
-
-        public static IRocketImplementation Implementation;
+        
         public static HidePlugins Instance;
 
-        #region Write
+        #region WriteToConsole
         public static void Write(string message)
         {
-            Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine(message);
-            Console.ResetColor();
         }
         public static void Write(string message, ConsoleColor color)
         {
@@ -41,37 +35,30 @@ namespace HidePlugins
             Console.WriteLine(message);
             Console.ResetColor();
         }
-        #endregion
-
-        #region WriteMenu
-        public static void WriteMenu(string message)
+        public static void WriteDebug(string message)
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine(message);
-            Console.ResetColor();
+            if (Instance.Configuration.Instance.Mode == "Debug")
+            {
+                Console.ForegroundColor = ConsoleColor.DarkCyan;
+                Console.WriteLine("[DEBUG] " + message);
+                Console.ResetColor();
+            }
         }
         #endregion
 
-        #region Write/Log Error
-        public static void WriteLogError(string message)
-        {
-            Rocket.Core.Logging.Logger.LogError(message);
-        }
         #endregion
-        #endregion
-        
+
         #region Load
         protected override void Load()
         {
             Instance = this;
             
             Level.onLevelLoaded += OnLevelLoaded;
+            R.Plugins.OnPluginsLoaded += OnPluginsLoaded;
 
-            WriteMenu(pluginName + ", Version: " + pluginVersion);
-            WriteMenu("Made for Unturned: " + unturnedVersion);
-            WriteMenu("Made for RocketMod: " + rocketVersion);
-            WriteMenu("Visit " + pluginSite + " for more!" + "\n");
-            WriteMenu("~~~~~ Checking for Updates ~~~~~" + "\n");
+            Write(pluginName + ", Version: " + pluginVersion, ConsoleColor.Yellow);
+            Write("Made for Unturned: " + unturnedVersion, ConsoleColor.Yellow);
+            Write("Made for RocketMod: " + rocketVersion + "\n", ConsoleColor.Yellow);
 
             CheckForUpdates();
 
@@ -139,85 +126,44 @@ namespace HidePlugins
         #region CheckForUpdates
         public void CheckForUpdates()
         {
-            WebClient webClient = new WebClient();
-            string path = System.IO.Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Plugins" + Path.DirectorySeparatorChar + "HidePlugins" + Path.DirectorySeparatorChar + "Updates" + Path.DirectorySeparatorChar;
-                        
-            if (string.IsNullOrEmpty(Configuration.Instance.UpdateURL))
-            {
-                try
-                {
-                    currentVersion = webClient.DownloadString("http://plugins.4unturned.tk/plugins/" + pluginName + "/update");
-                    updateInfo = webClient.DownloadString("http://plugins.4unturned.tk/plugins/" + pluginName + "/update_" + pluginVersion);
-                }
-                catch (WebException)
-                {
-                    WriteLogError("Failed to Search for Updates!\nMore Info: goo.gl/yAIaWz\n");
-                    return;
-                }
-            }
-            else
-            {
-                try
-                {
-                    currentVersion = webClient.DownloadString(Configuration.Instance.UpdateURL + pluginName + "/update");
-                    updateInfo = webClient.DownloadString(Configuration.Instance.UpdateURL + pluginName + "/update_" + pluginVersion);
-                }
-                catch (WebException)
-                {
-                    WriteLogError("Failed to Search for Updates!\nMore Info: goo.gl/yAIaWz\n");
-                    return;
-                }
-            }
+            string updateDir = System.IO.Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Plugins" + Path.DirectorySeparatorChar + "HidePlugins" + Path.DirectorySeparatorChar + "Updates" + Path.DirectorySeparatorChar;
 
-            if (string.IsNullOrEmpty(Configuration.Instance.DownloadURL))
+            try
             {
-                downloadUrl = "http://plugins.4unturned.tk/releases/HidePlugins/" + currentVersion + ".zip";
-            }
-            else
-            {
-                downloadUrl = Configuration.Instance.DownloadURL + currentVersion + ".zip";
-            }
+                string updateSite = new WebClient().DownloadString("http://plugins.4unturned.tk/plugins/HidePlugins/update");
 
-            if (updateInfo.Length < 200)
-            {
-                if (currentVersion != pluginVersion)
+                if (updateSite.Length > 7) return;
+
+                if (updateSite == pluginVersion) return;
+
+                if (!System.IO.Directory.Exists(updateDir))
                 {
-                    Write(updateInfo);
+                    System.IO.Directory.CreateDirectory(updateDir);
+                }
 
-                    if (string.IsNullOrEmpty(Configuration.Instance.DisableAutoUpdates))
-                    {
-                        if (!System.IO.Directory.Exists(path))
-                        {
-                            System.IO.Directory.CreateDirectory(path);
-                        }
-
-                        try
-                        {
-                            if (!File.Exists(path + "Update-" + currentVersion + ".zip"))
-                            {
-                                Write("Downloading Update...\n");
-                                webClient.DownloadFileAsync(new Uri(downloadUrl), path + "Update-" + currentVersion + ".zip");
-                            }
-                        }
-                        catch (WebException)
-                        {
-                            WriteLogError("Failed to Download Updates!\nMore Info: goo.gl/yAIaWz\n");
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        Write("To download the update, go to\n" + downloadUrl + "\n");
-                    }
+                if (Configuration.Instance.DisableAutoUpdates == "true")
+                {
+                    Write("Version " + updateSite + " is now available on Rocket!\n", ConsoleColor.Green);
                 }
                 else
                 {
-                    Write(pluginName + " is up to date!\n");
+                    if (File.Exists(updateDir + "Update-" + updateSite + ".zip")) return;
+
+                    try
+                    {
+                        new WebClient().DownloadFileAsync(new Uri("http://plugins.4unturned.tk/releases/HidePlugins/" + updateSite + ".zip"), updateDir + "Update-" + updateSite + ".zip");
+
+                        Write("Version " + updateSite + " is now available in the \"Updates\" folder\n", ConsoleColor.Green);
+                    }
+                    catch
+                    {
+                        Logger.LogError("An error occured when trying to download updates\nMore info: goo.gl/DckR7x");
+                    }
                 }
             }
-            else
+            catch
             {
-                Write("No Updates Available\n");
+                Logger.LogError("An error occured when trying to search for updates\nMore info: goo.gl/DckR7x");
             }
         }
         #endregion
@@ -225,10 +171,44 @@ namespace HidePlugins
         #region OnLevelLoaded
         public void OnLevelLoaded(int level)
         {
-            #region Custom Entries
+            #region Hide Workshop
+            if (Configuration.Instance.HideWorkshop)
+            {
+                SteamGameServer.SetKeyValue("Browser_Workshop_Count", null);
+
+                WriteDebug("Set 'Browser_Workshop_Count' KeyValue to null");
+            }
+            #endregion
+
+            #region Hide Config
+            if (Configuration.Instance.HideConfig)
+            {
+                SteamGameServer.SetKeyValue("Browser_Config_Count", null);
+
+                WriteDebug("Set 'Browser_Config_Count' KeyValue to null");
+            }
+            #endregion
+
+            #region LargeServer
+            if (Configuration.Instance.Enable_LargeServer)
+            {
+                SteamGameServer.SetMaxPlayerCount(24);
+
+                WriteDebug("Set 'MaxPlayerCount' value to 24");
+            }
+            #endregion
+        }
+        #endregion
+
+        #region OnPluginsLoaded
+        private void OnPluginsLoaded()
+        {
+            #region Custom plugin Entries
             if (Configuration.Instance.Enable_CustomEntries)
             {
                 SteamGameServer.SetKeyValue("rocketplugins", string.Join(",", Configuration.Instance.CustomEntries.ToArray()));
+
+                WriteDebug("Set 'rocketplugins' KeyValue to " + string.Join(",", Configuration.Instance.CustomEntries.ToArray()));
             }
             else
             {
@@ -241,13 +221,17 @@ namespace HidePlugins
                 }
 
                 SteamGameServer.SetKeyValue("rocketplugins", string.Join(",", pluginNames.ToArray()));
+
+                WriteDebug("Set 'rocketplugins' KeyValue to " + string.Join(",", pluginNames.ToArray()));
             }
             #endregion
 
             #region Hide Plugins
             if (Configuration.Instance.HidePlugins)
             {
-                SteamGameServer.SetKeyValue("rocketplugins", "");
+                SteamGameServer.SetKeyValue("rocketplugins", null);
+
+                WriteDebug("Set 'rocketplugins' KeyValue to null");
             }
             else
             {
@@ -262,40 +246,9 @@ namespace HidePlugins
                     }
 
                     SteamGameServer.SetKeyValue("rocketplugins", string.Join(",", pluginNames.ToArray()));
+
+                    WriteDebug("Set 'rocketplugins' KeyValue to " + string.Join(",", pluginNames.ToArray()));
                 }
-            }
-            #endregion
-
-            #region Hide Workshop
-            if (Configuration.Instance.HideWorkshop)
-            {
-                SteamGameServer.SetKeyValue("Browser_Workshop_Count", null);
-            }
-            else
-            {
-                SteamGameServer.SetKeyValue("Browser_Workshop_Count", "99");
-            }
-            #endregion
-
-            #region Hide Config
-            if (Configuration.Instance.HideConfig)
-            {
-                SteamGameServer.SetKeyValue("Browser_Config_Count", "0");
-            }
-            else
-            {
-                SteamGameServer.SetKeyValue("Browser_Config_Count", "99");
-            }
-            #endregion
-
-            #region MaxPlayerCount
-            if (Configuration.Instance.Enable_LargeServer)
-            {
-                SteamGameServer.SetMaxPlayerCount(24);
-            }
-            else
-            {
-                SteamGameServer.SetMaxPlayerCount(Provider.maxPlayers);
             }
             #endregion
         }
@@ -305,6 +258,9 @@ namespace HidePlugins
         protected override void Unload()
         {
             Level.onLevelLoaded -= OnLevelLoaded;
+            R.Plugins.OnPluginsLoaded -= OnPluginsLoaded;
+            
+            Write("Visit " + pluginSite + " for more!" + "\n", ConsoleColor.Yellow);
         }
         #endregion
     }

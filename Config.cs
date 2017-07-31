@@ -7,8 +7,7 @@ public class Config : IRocketPluginConfiguration
     #region Vars
     public static Config Instance;
 
-    public string UpdateURL;
-    public string DownloadURL;
+    public string Mode;
     public string DisableAutoUpdates;
     
     public bool HidePlugins;
